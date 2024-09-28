@@ -25,30 +25,18 @@ class _ImplicitAnimationsScreenState extends State<ImplicitAnimationsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // `Implicit animation`이란?
-            // 애니메이션을 사용할 수 있지만 애니메이션이 코드에 없는 것을 말한다.
-            AnimatedAlign(
-              alignment: _visible ? Alignment.topLeft : Alignment.topRight,
+            AnimatedContainer(
               duration: const Duration(seconds: 2),
-              child: AnimatedOpacity(
-                opacity: _visible ? 1 : 0,
-                duration: const Duration(seconds: 2),
-                child: Container(
-                  width: size.width * 0.8,
-                  height: size.width * 0.8,
-                  color: Colors.amber,
-                ),
+              width: _visible ? size.width : size.width * 0.8,
+              height: _visible ? size.width : size.width * 0.8,
+              transform: Matrix4.rotationZ(_visible ? 1 : 0),
+              transformAlignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: _visible ? Colors.red : Colors.amber,
+                borderRadius: BorderRadius.circular(_visible ? 100 : 0),
               ),
             ),
-            // Opacity(
-            //   opacity: _visible ? 1 : 0,
-            //   child: Container(
-            //     width: size.width * 0.8,
-            //     height: size.width * 0.8,
-            //     color: Colors.amber,
-            //   ),
-            // ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 50),
             ElevatedButton(
               onPressed: _trigger,
               child: const Text('Go!'),
