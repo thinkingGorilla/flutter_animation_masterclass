@@ -26,6 +26,9 @@ class _ImplicitAnimationsScreenState extends State<ImplicitAnimationsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             AnimatedContainer(
+              // `Curve`는 애니메이션의 진행 속도를 정의하는 함수로
+              // 시간의 변화에 따른 애니메이션 효과를 조절하는 역할을 한다.
+              curve: Curves.elasticOut,
               duration: const Duration(seconds: 2),
               width: _visible ? size.width : size.width * 0.8,
               height: _visible ? size.width : size.width * 0.8,
