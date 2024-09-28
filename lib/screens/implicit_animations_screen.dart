@@ -18,26 +18,26 @@ class _ImplicitAnimationsScreenState extends State<ImplicitAnimationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(title: const Text('Implicit Animations')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AnimatedContainer(
-              // `Curve`는 애니메이션의 진행 속도를 정의하는 함수로
-              // 시간의 변화에 따른 애니메이션 효과를 조절하는 역할을 한다.
-              curve: Curves.elasticOut,
-              duration: const Duration(seconds: 2),
-              width: _visible ? size.width : size.width * 0.8,
-              height: _visible ? size.width : size.width * 0.8,
-              transform: Matrix4.rotationZ(_visible ? 1 : 0),
-              transformAlignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: _visible ? Colors.red : Colors.amber,
-                borderRadius: BorderRadius.circular(_visible ? 100 : 0),
-              ),
+            // `Implicit animations`에서 원하는 애니메이션이 없을 때
+            // 직접 `TweenAnimationBuilder`을 통해 `implicit animation`을 구현할 수 있다.
+            TweenAnimationBuilder(
+              // `Tween`이란 시작값과 목표값을 갖는 객체로 애니메이션 타겟 값을 가진다.
+              tween: ColorTween(begin: Colors.yellow, end: Colors.red),
+              curve: Curves.bounceInOut,
+              duration: const Duration(seconds: 5),
+              builder: (context, value, child) {
+                return Image.network(
+                  'https://storage.googleapis.com/cms-storage-bucket/780e0e64d323aad2cdd5.png',
+                  color: value,
+                  colorBlendMode: BlendMode.colorBurn,
+                );
+              },
             ),
             const SizedBox(height: 50),
             ElevatedButton(
