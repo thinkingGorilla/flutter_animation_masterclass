@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 
 class ExplicitAnimationsScreen extends StatefulWidget {
@@ -22,9 +24,16 @@ class _ExplicitAnimationsScreenState extends State<ExplicitAnimationsScreen> wit
       vsync: this,
       duration: const Duration(seconds: 2),
       reverseDuration: const Duration(seconds: 1),
-    );
-    // 모든 `Tween`들이 `AnimationController`를 직접 사용하는 것이 아니라
-    // `Curve`가 적용된 `CurvedAnimation`을 따라 애니메이션이 수행되도록 한다.
+    )..addListener(
+        () {
+          _range.value = _animationController.value;
+          // `_value`가 변할 때 setState() 함수 호출로 화면을 리렌더링 하는 것은
+          // 화면 전체를 리렌더링하므로 매우 비효율적이다.
+          // super.setState(() {
+          //   _value = _animationController.value;
+          // });
+        },
+      );
     _curved = CurvedAnimation(
       parent: _animationController,
       curve: Curves.elasticOut,
@@ -57,8 +66,16 @@ class _ExplicitAnimationsScreenState extends State<ExplicitAnimationsScreen> wit
     super.dispose();
   }
 
+  // double _value = 0;
+
+  // `_value` 변할 때 리렌더링 할 특정 위젯만을 고르기 위해 `ValueNotifier`를 사용한다.
+  late final ValueNotifier<double> _range = ValueNotifier(.0);
+
+  void _onChanged(double value) => _animationController.value = value;
+
   @override
   Widget build(BuildContext context) {
+    log('build');
     return Scaffold(
       appBar: AppBar(title: const Text('Explicit Animations')),
       body: Center(
@@ -86,7 +103,15 @@ class _ExplicitAnimationsScreenState extends State<ExplicitAnimationsScreen> wit
                 ElevatedButton(onPressed: _pause, child: const Text('Pause')),
                 ElevatedButton(onPressed: _rewind, child: const Text('Rewind')),
               ],
-            )
+            ),
+            const SizedBox(height: 25),
+            ValueListenableBuilder(
+              valueListenable: _range,
+              builder: (context, value, child) {
+                return Slider(value: value, onChanged: _onChanged);
+              },
+            ),
+            // Slider(value: _value, onChanged: _onChanged),
           ],
         ),
       ),
