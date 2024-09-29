@@ -9,17 +9,28 @@ class ExplicitAnimationsScreen extends StatefulWidget {
 
 class _ExplicitAnimationsScreenState extends State<ExplicitAnimationsScreen> with SingleTickerProviderStateMixin {
   late final AnimationController _animationController;
-  late final Animation<Color?> _color;
+  late final Animation<Decoration> _decoration;
+  late final Animation<double> _rotation;
+  late final Animation<double> _scale;
+  late final Animation<Offset> _offset;
 
   @override
   void initState() {
     super.initState();
     _animationController = AnimationController(vsync: this, duration: const Duration(seconds: 2));
-    // `Tween`이 `AnimationController`에 의해 애니메이션되도록
-    // animate() 함수를 통해 `AnimationController`와 연결한다.
-    // `Tween`은 `AnimationController`에서 제공하는 0부터 1까지의 실수 값을 따라
-    // 설정된 `begin`부터 `end`까지의 값으로부터 자신이 애니메이션할 목표값을 보간하여 계산한다.
-    _color = ColorTween(begin: Colors.amber, end: Colors.red).animate(_animationController);
+    _decoration = DecorationTween(
+      begin: BoxDecoration(
+        color: Colors.amber,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      end: BoxDecoration(
+        color: Colors.red,
+        borderRadius: BorderRadius.circular(120),
+      ),
+    ).animate(_animationController);
+    _rotation = Tween(begin: .0, end: 2.0).animate(_animationController);
+    _scale = Tween(begin: 1.0, end: 1.1).animate(_animationController);
+    _offset = Tween(begin: Offset.zero, end: const Offset(0, -.5)).animate(_animationController);
   }
 
   void _play() => _animationController.forward();
@@ -42,17 +53,24 @@ class _ExplicitAnimationsScreenState extends State<ExplicitAnimationsScreen> wit
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AnimatedBuilder(
-              animation: _color,
-              builder: (context, child) {
-                return Container(
-                  // `AnimationController.value`에 의해 `ColorTween.value`에 매핑된 값을 사용한다.
-                  color: _color.value,
-                  width: 400,
-                  height: 400,
-                );
-              },
+            // Implicit animation 구현 시 Animated~ 위젯을 이용하여 구현한다.
+            // Animated~ 위젯으로 애니메이션을 구현할 수 없을 때는 `Explicit animation`로 구현한다.
+            // Explicit animation 구현 시 ~Transition 위젯을 이용하여 구현한다.
+            // ~Transition 위젯 위젯으로 애니메이션을 구현할 수 없을 때는 AnimatedBuilder 위젯로 구현한다.
+            SlideTransition(
+              position: _offset,
+              child: ScaleTransition(
+                scale: _scale,
+                child: RotationTransition(
+                  turns: _rotation,
+                  child: DecoratedBoxTransition(
+                    decoration: _decoration,
+                    child: const SizedBox(height: 400, width: 400),
+                  ),
+                ),
+              ),
             ),
+            const SizedBox(height: 50),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
