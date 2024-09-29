@@ -9,6 +9,7 @@ class ExplicitAnimationsScreen extends StatefulWidget {
 
 class _ExplicitAnimationsScreenState extends State<ExplicitAnimationsScreen> with SingleTickerProviderStateMixin {
   late final AnimationController _animationController;
+  late final CurvedAnimation _curved;
   late final Animation<Decoration> _decoration;
   late final Animation<double> _rotation;
   late final Animation<double> _scale;
@@ -17,7 +18,18 @@ class _ExplicitAnimationsScreenState extends State<ExplicitAnimationsScreen> wit
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(vsync: this, duration: const Duration(seconds: 2));
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+      reverseDuration: const Duration(seconds: 1),
+    );
+    // 모든 `Tween`들이 `AnimationController`를 직접 사용하는 것이 아니라
+    // `Curve`가 적용된 `CurvedAnimation`을 따라 애니메이션이 수행되도록 한다.
+    _curved = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.elasticOut,
+      reverseCurve: Curves.bounceIn,
+    );
     _decoration = DecorationTween(
       begin: BoxDecoration(
         color: Colors.amber,
@@ -27,10 +39,10 @@ class _ExplicitAnimationsScreenState extends State<ExplicitAnimationsScreen> wit
         color: Colors.red,
         borderRadius: BorderRadius.circular(120),
       ),
-    ).animate(_animationController);
-    _rotation = Tween(begin: .0, end: 2.0).animate(_animationController);
-    _scale = Tween(begin: 1.0, end: 1.1).animate(_animationController);
-    _offset = Tween(begin: Offset.zero, end: const Offset(0, -.5)).animate(_animationController);
+    ).animate(_curved);
+    _rotation = Tween(begin: .0, end: .5).animate(_curved);
+    _scale = Tween(begin: 1.0, end: 1.1).animate(_curved);
+    _offset = Tween(begin: Offset.zero, end: const Offset(0, -.5)).animate(_curved);
   }
 
   void _play() => _animationController.forward();
@@ -53,10 +65,6 @@ class _ExplicitAnimationsScreenState extends State<ExplicitAnimationsScreen> wit
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Implicit animation 구현 시 Animated~ 위젯을 이용하여 구현한다.
-            // Animated~ 위젯으로 애니메이션을 구현할 수 없을 때는 `Explicit animation`로 구현한다.
-            // Explicit animation 구현 시 ~Transition 위젯을 이용하여 구현한다.
-            // ~Transition 위젯 위젯으로 애니메이션을 구현할 수 없을 때는 AnimatedBuilder 위젯로 구현한다.
             SlideTransition(
               position: _offset,
               child: ScaleTransition(
