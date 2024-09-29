@@ -24,16 +24,18 @@ class _ExplicitAnimationsScreenState extends State<ExplicitAnimationsScreen> wit
       vsync: this,
       duration: const Duration(seconds: 2),
       reverseDuration: const Duration(seconds: 1),
-    )..addListener(
-        () {
-          _range.value = _animationController.value;
-          // `_value`가 변할 때 setState() 함수 호출로 화면을 리렌더링 하는 것은
-          // 화면 전체를 리렌더링하므로 매우 비효율적이다.
-          // super.setState(() {
-          //   _value = _animationController.value;
-          // });
-        },
-      );
+    )..addListener(() => _range.value = _animationController.value);
+    // addStatusListener() 함수를 통해 애니메이션 반복을 구현할 수 있지만
+    // repeat() 함수를 통해 더 쉽게 구현 할 수 있다.
+    // ..addStatusListener(
+    //   (status) {
+    //     if (status == AnimationStatus.completed) {
+    //       _animationController.reverse();
+    //     } else if (status == AnimationStatus.dismissed) {
+    //       _animationController.forward();
+    //     }
+    //   },
+    // );
     _curved = CurvedAnimation(
       parent: _animationController,
       curve: Curves.elasticOut,
@@ -66,12 +68,21 @@ class _ExplicitAnimationsScreenState extends State<ExplicitAnimationsScreen> wit
     super.dispose();
   }
 
-  // double _value = 0;
-
-  // `_value` 변할 때 리렌더링 할 특정 위젯만을 고르기 위해 `ValueNotifier`를 사용한다.
   late final ValueNotifier<double> _range = ValueNotifier(.0);
 
   void _onChanged(double value) => _animationController.value = value;
+
+  bool _looping = false;
+
+  void _toggleLooping() {
+    if (_looping) {
+      _animationController.stop();
+    } else {
+      _animationController.repeat(reverse: true);
+    }
+
+    setState(() => _looping = !_looping);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,6 +113,10 @@ class _ExplicitAnimationsScreenState extends State<ExplicitAnimationsScreen> wit
                 ElevatedButton(onPressed: _play, child: const Text('Play')),
                 ElevatedButton(onPressed: _pause, child: const Text('Pause')),
                 ElevatedButton(onPressed: _rewind, child: const Text('Rewind')),
+                ElevatedButton(
+                  onPressed: _toggleLooping,
+                  child: Text(_looping ? 'Stop Looping' : 'Start looping'),
+                ),
               ],
             ),
             const SizedBox(height: 25),
@@ -111,7 +126,6 @@ class _ExplicitAnimationsScreenState extends State<ExplicitAnimationsScreen> wit
                 return Slider(value: value, onChanged: _onChanged);
               },
             ),
-            // Slider(value: _value, onChanged: _onChanged),
           ],
         ),
       ),
