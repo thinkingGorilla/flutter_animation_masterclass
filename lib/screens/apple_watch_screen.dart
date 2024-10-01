@@ -11,6 +11,11 @@ class AppleWatchScreen extends StatefulWidget {
 
 class _AppleWatchScreenState extends State<AppleWatchScreen> with SingleTickerProviderStateMixin {
   late final AnimationController _animationController;
+  late final CurvedAnimation _curve;
+
+  late Animation<double> _redArcProgress;
+  late Animation<double> _greenArcProgress;
+  late Animation<double> _blueArcProgress;
 
   @override
   void initState() {
@@ -18,13 +23,28 @@ class _AppleWatchScreenState extends State<AppleWatchScreen> with SingleTickerPr
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
-      lowerBound: .005,
-      upperBound: 2.0,
-    );
+    )..forward();
+
+    _curve = CurvedAnimation(parent: _animationController, curve: Curves.bounceOut);
+
+    _redArcProgress = _createAnimation();
+    _greenArcProgress = _createAnimation();
+    _blueArcProgress = _createAnimation();
+  }
+
+  Animation<double> _createAnimation({double begin = 0.05, double? end, bool mulFactor = false}) {
+    end ??= Random().nextDouble() * (mulFactor ? 2 : 1);
+    return Tween(begin: begin, end: end).animate(_curve);
   }
 
   void _animateValues() {
-    _animationController.forward();
+    super.setState(() {
+      _redArcProgress = _createAnimation(begin: _redArcProgress.value, mulFactor: true);
+      _greenArcProgress = _createAnimation(begin: _greenArcProgress.value, mulFactor: true);
+      _blueArcProgress = _createAnimation(begin: _blueArcProgress.value, mulFactor: true);
+    });
+
+    _animationController.forward(from: 0);
   }
 
   @override
@@ -47,7 +67,11 @@ class _AppleWatchScreenState extends State<AppleWatchScreen> with SingleTickerPr
           animation: _animationController,
           builder: (context, child) {
             return CustomPaint(
-              painter: AppleWatchPainter(progress: _animationController.value),
+              painter: AppleWatchPainter(
+                redArcProgress: _redArcProgress.value,
+                greenArcProgress: _greenArcProgress.value,
+                blueArcProgress: _blueArcProgress.value,
+              ),
               size: const Size(400, 400),
             );
           },
@@ -62,9 +86,15 @@ class _AppleWatchScreenState extends State<AppleWatchScreen> with SingleTickerPr
 }
 
 class AppleWatchPainter extends CustomPainter {
-  final double progress;
+  final double redArcProgress;
+  final double greenArcProgress;
+  final double blueArcProgress;
 
-  AppleWatchPainter({required this.progress});
+  AppleWatchPainter({
+    required this.redArcProgress,
+    required this.greenArcProgress,
+    required this.blueArcProgress,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -106,7 +136,7 @@ class AppleWatchPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 25;
 
-    canvas.drawArc(redArcRect, startingAngle, progress * pi, false, redArcPaint);
+    canvas.drawArc(redArcRect, startingAngle, redArcProgress * pi, false, redArcPaint);
 
     // green arc
     final greenArcRect = Rect.fromCircle(center: center, radius: greenCircleRadius);
@@ -116,7 +146,7 @@ class AppleWatchPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 25;
 
-    canvas.drawArc(greenArcRect, startingAngle, progress * pi, false, greenArcPaint);
+    canvas.drawArc(greenArcRect, startingAngle, greenArcProgress * pi, false, greenArcPaint);
 
     // blue arc
     final blueArcRect = Rect.fromCircle(center: center, radius: blueCircleRadius);
@@ -126,22 +156,11 @@ class AppleWatchPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 25;
 
-    canvas.drawArc(blueArcRect, startingAngle, progress * pi, false, blueArcPaint);
+    canvas.drawArc(blueArcRect, startingAngle, blueArcProgress * pi, false, blueArcPaint);
   }
 
   @override
   bool shouldRepaint(AppleWatchPainter oldDelegate) {
-    // `false`를 반환하는 경우 새로운 CustomPainter 인스턴스가 생성되어도
-    // paint() 메서드를 다시 호출하지 않는다.
-    // 예를 들어 `AnimationController`에 의해 애니메이션이 진행되면서 `value` 값이 계속 바뀌는데
-    // 이로 인해 AppleWatchPainter 새로운 인스턴스가 생성된다.
-    // 이때 타입이 같은 새로운 인스턴스가 생성되었지만 `shouldRepaint()`가 `false`를 반환하므로
-    // paint() 메서드는 호출되지 않아 애니메이션에 의한 새로운 화면이 렌더링 되지 않는다.
-    // return false
-
-    // 아래의 코드와 `true`를 반환하는 것은 동등하다.
-    // 애니메이션 값이 바뀌어 새로운 인스턴스가 생기고 그래서 항상 다시 그린다는 의미의 `true`와
-    // 애니메이션 값을 비교하여 바뀐 것을 확인하는 것은 같다.
-    return oldDelegate.progress != progress;
+    return true;
   }
 }
