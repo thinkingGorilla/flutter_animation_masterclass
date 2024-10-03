@@ -19,7 +19,11 @@ class _SwipingCardsScreenState extends State<SwipingCardsScreen> with SingleTick
     upperBound: _size.width,
   );
   late final Tween<double> _rotation = Tween(begin: -15.0, end: 15.0);
-  late final Tween<double> _scale = Tween(begin: 0.8, end: 1);
+  late final Tween<double> _scale = Tween(begin: .8, end: 1);
+
+  late final Tween<double> _buttonScale = Tween(begin: 1, end: 1.15);
+  late final ColorTween _rejectButtonColor = ColorTween(begin: Colors.white, end: Colors.red.shade200);
+  late final ColorTween _confirmButtonColor = ColorTween(begin: Colors.white, end: Colors.green.shade200);
 
   void _onHorizontalDragUpdate(DragUpdateDetails details) => _position.value += details.delta.dx;
 
@@ -34,19 +38,18 @@ class _SwipingCardsScreenState extends State<SwipingCardsScreen> with SingleTick
   }
 
   _whenComplete() {
-    // 애니메이션 없이 위쪽 카드를 제 위치로 돌린다.
-    // _position.animateTo(0);
     _position.value = 0;
-
-    // `_index` 값을 증가시켜 아래쪽 카드와 위쪽 카드의 이미지를 바꾼다.
-    // 애니메이션이 종료되면 위쪽 카드는 사라지고 아래쪽 카드는 나타나는데,
-    // setState() 메서드로 인해 위쪽 카드와 아래쪽 카드의 이미지가 바뀐다.
-    // 그런데 애니메이션 종료 시점에 이미 아래쪽 카드의 이미지가
-    // `_index` 값 증가에 따른 위쪽 카드의 이미지와 같으므로
-    // `_position.animateTo(0)`에 의해 위쪽 카드가 제 위치로 돌아와도
-    // 사용자는 동일한 카드 이미지가 보이기 때문에 마치 여러장의 카드가 있는 것처럼 느끼게 된다.
-    // 이미지가 제 위치로 돌아오는 것을 확인해보려면 아래 setState() 코드 라인을 주석 처리해 보라.
     super.setState(() => _index = _index == 5 ? 1 : _index + 1);
+  }
+
+  void _onReject() {
+    if (_position.isAnimating) return;
+    _position.reverse().whenComplete(_whenComplete);
+  }
+
+  void _onConfirm() {
+    if (_position.isAnimating) return;
+    _position.forward().whenComplete(_whenComplete);
   }
 
   @override
@@ -67,13 +70,19 @@ class _SwipingCardsScreenState extends State<SwipingCardsScreen> with SingleTick
           final angle = _rotation.transform((_position.value / _size.width + 1) / 2) * pi / 180;
           final scale = _scale.transform(_position.value.abs() / _size.width);
 
+          final buttonScale = _buttonScale.transform(_position.value.abs() / _size.width);
+          final rejectButtonColor = _rejectButtonColor.transform(-(_position.value / _size.width));
+          final confirmButtonColor = _confirmButtonColor.transform(_position.value / _size.width);
+
+          final iconColorBound = _size.width - 200;
+
           return Stack(
             alignment: Alignment.topCenter,
             children: [
               Positioned(
                 top: 100,
                 child: Transform.scale(
-                  scale: min(scale, 1.0),
+                  scale: min(scale, 1),
                   child: Card(index: _index == 5 ? 1 : _index + 1),
                 ),
               ),
@@ -90,6 +99,60 @@ class _SwipingCardsScreenState extends State<SwipingCardsScreen> with SingleTick
                       child: Card(index: _index),
                     ),
                   ),
+                ),
+              ),
+              Positioned(
+                bottom: 80,
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: _onReject,
+                      child: Transform.scale(
+                        scale: _position.value.isNegative ? buttonScale : 1,
+                        child: Container(
+                          height: 80,
+                          width: 80,
+                          decoration: BoxDecoration(
+                            color: rejectButtonColor,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 5),
+                            boxShadow: const [
+                              BoxShadow(color: Colors.black26, offset: Offset(1, 5), blurRadius: 10),
+                            ],
+                          ),
+                          child: Icon(
+                            Icons.close_rounded,
+                            color: _position.value > -iconColorBound ? Colors.red : Colors.white,
+                            size: 60,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 25),
+                    GestureDetector(
+                      onTap: _onConfirm,
+                      child: Transform.scale(
+                        scale: _position.value.isNegative ? 1 : buttonScale,
+                        child: Container(
+                          height: 80,
+                          width: 80,
+                          decoration: BoxDecoration(
+                            color: confirmButtonColor,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 5),
+                            boxShadow: const [
+                              BoxShadow(color: Colors.black26, offset: Offset(1, 5), blurRadius: 10),
+                            ],
+                          ),
+                          child: Icon(
+                            Icons.check_rounded,
+                            color: _position.value < iconColorBound ? Colors.green : Colors.white,
+                            size: 60,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
