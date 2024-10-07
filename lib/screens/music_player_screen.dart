@@ -25,7 +25,13 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(viewportFraction: 0.8);
+    _pageController = PageController(viewportFraction: 0.8)
+      ..addListener(
+        () {
+          if (_pageController.page == null) return;
+          _scroll.value = _pageController.page!;
+        },
+      );
   }
 
   @override
@@ -35,6 +41,8 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
   }
 
   int _currentPage = 0;
+
+  final ValueNotifier<double> _scroll = ValueNotifier(.0);
 
   void _onPageChanged(int newPage) {
     setState(() {
@@ -79,23 +87,37 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    height: 350,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.4),
-                          blurRadius: 10,
-                          spreadRadius: 2,
-                          offset: const Offset(0, 8),
-                        )
-                      ],
-                      image: DecorationImage(
-                        image: AssetImage('assets/covers/${index + 1}.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
+                  ValueListenableBuilder(
+                    valueListenable: _scroll,
+                    builder: (context, scroll, child) {
+                      final difference = scroll - index;
+                      print('We are $difference cards away from card $index');
+
+                      final scale = 1 - (difference.abs() * 0.1);
+                      print('The card ${index + 1} has a scale of $scale');
+
+                      return Transform.scale(
+                        scale: scale,
+                        child: Container(
+                          height: 350,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.4),
+                                blurRadius: 10,
+                                spreadRadius: 2,
+                                offset: const Offset(0, 8),
+                              )
+                            ],
+                            image: DecorationImage(
+                              image: AssetImage('assets/covers/${index + 1}.jpg'),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 35),
                   Text(
