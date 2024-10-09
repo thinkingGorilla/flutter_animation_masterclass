@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animations_masterclass/screens/music_player_detail_screen.dart';
 
 // For support swipe with mouse, we need to change default scroll behavior of app
 class AppScrollBehavior extends MaterialScrollBehavior {
@@ -50,6 +51,45 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
     });
   }
 
+  void _onTap(int imageIndex) {
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        transitionDuration: const Duration(seconds: 5),
+        reverseTransitionDuration: const Duration(seconds: 5),
+        // pageBuilder에서 주어지는 animation을 사용하여
+        // 페이지 전환 시 다양한 애니메이션을 만들어낼 수 있다.
+        pageBuilder: (context, animation, secondaryAnimation) {
+          /*
+          return AnimatedBuilder(
+            animation: animation,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: animation.value,
+                child: MusicPlayerDetailScreen(index: imageIndex),
+              );
+            },
+          );
+          */
+          /*
+          return RotationTransition(
+            turns: animation,
+            child: MusicPlayerDetailScreen(index: imageIndex),
+          );
+          */
+          /*
+          final offset = Tween<Offset>(begin: const Offset(1, 1), end: Offset.zero).animate(animation);
+          return SlideTransition(
+            position: offset,
+            child: MusicPlayerDetailScreen(index: imageIndex),
+          );
+          */
+          return FadeTransition(opacity: animation, child: MusicPlayerDetailScreen(index: imageIndex));
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -96,23 +136,29 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
                       final scale = 1 - (difference.abs() * 0.1);
                       print('The card ${index + 1} has a scale of $scale');
 
-                      return Transform.scale(
-                        scale: scale,
-                        child: Container(
-                          height: 350,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.4),
-                                blurRadius: 10,
-                                spreadRadius: 2,
-                                offset: const Offset(0, 8),
-                              )
-                            ],
-                            image: DecorationImage(
-                              image: AssetImage('assets/covers/${index + 1}.jpg'),
-                              fit: BoxFit.cover,
+                      return GestureDetector(
+                        onTap: () => _onTap(index + 1),
+                        child: Hero(
+                          tag: '${index + 1}',
+                          child: Transform.scale(
+                            scale: scale,
+                            child: Container(
+                              height: 350,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.4),
+                                    blurRadius: 10,
+                                    spreadRadius: 2,
+                                    offset: const Offset(0, 8),
+                                  )
+                                ],
+                                image: DecorationImage(
+                                  image: AssetImage('assets/covers/${index + 1}.jpg'),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
                             ),
                           ),
                         ),
