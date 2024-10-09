@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class MusicPlayerDetailScreen extends StatefulWidget {
@@ -59,14 +60,12 @@ class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with 
             ),
           ),
           const SizedBox(height: 50),
-          AnimatedBuilder(
-            animation: _progressController,
-            builder: (context, child) {
-              return CustomPaint(
-                size: const Size(350, 5),
-                painter: ProgressBar(progressValue: _progressController.value),
-              );
-            },
+          CustomPaint(
+            size: const Size(350, 5),
+            painter: ProgressBar(
+              listenable: _progressController,
+              progressValue: _progressController.value,
+            ),
           )
         ],
       ),
@@ -75,14 +74,16 @@ class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with 
 }
 
 class ProgressBar extends CustomPainter {
+  final ValueListenable<double> listenable;
   final double progressValue;
 
-  ProgressBar({super.repaint, required this.progressValue});
+  ProgressBar({required this.listenable, required this.progressValue}) : super(repaint: listenable);
 
   @override
   void paint(Canvas canvas, Size size) {
     // 애니메이션 컨트롤러의 애니메이션 값이 0부터 1이므로 이를 진행 바의 너비로 보간해야한다.
-    final progress = size.width * progressValue;
+    final progress = size.width * listenable.value;
+    print(progress);
 
     // track
     final trackPaint = Paint()
@@ -109,6 +110,6 @@ class ProgressBar extends CustomPainter {
 
   @override
   bool shouldRepaint(ProgressBar oldDelegate) {
-    return oldDelegate.progressValue != progressValue;
+    return true;
   }
 }
