@@ -9,11 +9,15 @@ class MusicPlayerDetailScreen extends StatefulWidget {
   State<MusicPlayerDetailScreen> createState() => _MusicPlayerDetailScreenState();
 }
 
-class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with SingleTickerProviderStateMixin {
+class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with TickerProviderStateMixin {
   final Duration playTime = const Duration(minutes: 1);
   final ValueNotifier<Duration> _passedTime = ValueNotifier(Duration.zero);
 
   late final AnimationController _progressController;
+  late final AnimationController _marqueeController;
+
+  late final Animation<Offset> _marqueeTween =
+      Tween(begin: const Offset(.1, 0), end: const Offset(-.6, 0)).animate(_marqueeController);
 
   @override
   void initState() {
@@ -25,11 +29,14 @@ class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with 
           _passedTime.value = Duration(seconds: (playTime.inSeconds * _progressController.value).toInt());
         },
       );
+
+    _marqueeController = AnimationController(vsync: this, duration: const Duration(seconds: 20))..repeat(reverse: true);
   }
 
   @override
   void dispose() {
     _progressController.dispose();
+    _marqueeController.dispose();
     super.dispose();
   }
 
@@ -123,12 +130,47 @@ class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with 
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 5),
-          Text(
-            'A Film by Chritopher Nolan - Original motion picture soundstack',
-            style: TextStyle(fontSize: 18),
-          )
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              SizedBox(
+                width: 350,
+                child: SlideTransition(
+                  position: _marqueeTween,
+                  child: const Text(
+                    'A Film by Christopher Nolan - Original motion picture soundtrack',
+                    maxLines: 1,
+                    overflow: TextOverflow.visible,
+                    softWrap: false,
+                    style: TextStyle(fontSize: 18),
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildMarqueePartition(context, size),
+                  _buildMarqueePartition(context, size),
+                ],
+              )
+            ],
+          ),
         ],
       ),
+    );
+  }
+
+  Container _buildMarqueePartition(BuildContext context, Size size) {
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      height: () {
+        final painter =
+            TextPainter(text: const TextSpan(style: TextStyle(fontSize: 18)), textDirection: TextDirection.ltr)
+              ..layout()
+              ..height;
+        return painter.height;
+      }(),
+      width: (size.width - 350) / 2,
     );
   }
 }
