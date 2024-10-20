@@ -55,8 +55,8 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
     Navigator.push(
       context,
       PageRouteBuilder(
-        transitionDuration: const Duration(seconds: 5),
-        reverseTransitionDuration: const Duration(seconds: 5),
+        transitionDuration: const Duration(seconds: 1),
+        reverseTransitionDuration: const Duration(seconds: 1),
         // pageBuilder에서 주어지는 animation을 사용하여
         // 페이지 전환 시 다양한 애니메이션을 만들어낼 수 있다.
         pageBuilder: (context, animation, secondaryAnimation) {

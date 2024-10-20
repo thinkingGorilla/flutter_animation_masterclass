@@ -10,12 +10,21 @@ class MusicPlayerDetailScreen extends StatefulWidget {
 }
 
 class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with SingleTickerProviderStateMixin {
+  final Duration playTime = const Duration(minutes: 1);
+  final ValueNotifier<Duration> _passedTime = ValueNotifier(Duration.zero);
+
   late final AnimationController _progressController;
 
   @override
   void initState() {
     super.initState();
-    _progressController = AnimationController(vsync: this, duration: Duration(seconds: 5))..repeat(reverse: true);
+    _progressController = AnimationController(vsync: this, duration: playTime)
+      ..forward()
+      ..addListener(
+        () {
+          _passedTime.value = Duration(seconds: (playTime.inSeconds * _progressController.value).toInt());
+        },
+      );
   }
 
   @override
@@ -24,12 +33,19 @@ class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with 
     super.dispose();
   }
 
+  String _timeToString(Duration time) {
+    final twoDigitMin = time.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final twoDigitSec = time.inSeconds.remainder(60).toString().padLeft(2, '0');
+
+    return '$twoDigitMin:$twoDigitSec';
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Interstellar')),
+      appBar: AppBar(title: const Text('Interstellar')),
       body: Column(
         children: [
           const SizedBox(height: 30),
@@ -67,6 +83,49 @@ class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with 
                 painter: ProgressBar(progressValue: _progressController.value),
               );
             },
+          ),
+          const SizedBox(height: 10),
+          // AnimatedBuilder vs ValueListenableBuilder
+          // 연속성을 가지는 값을 가지는 경우 AnimatedBuilder를 그렇지 않은 경우 ValueListenableBuilder를 사용하자.
+          // 하지만 결국 두 Builder 모두 내부적으로는 Listenable을 사용하며
+          // 옵저버 패턴을 통해 Oservable, 즉 Listenable에 값이 바뀔 때 setState()를 호출하여
+          // 빌더에서 반환하는 위젯의 상태를 변경, 다시 화면을 그리게 된다.
+          SizedBox(
+            width: 350,
+            child: Row(
+              children: [
+                ValueListenableBuilder(
+                  valueListenable: _passedTime,
+                  builder: (context, value, child) {
+                    return Text(
+                      _timeToString(value),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600),
+                    );
+                  },
+                ),
+                const Spacer(),
+                ValueListenableBuilder(
+                  valueListenable: _passedTime,
+                  builder: (context, value, child) {
+                    final remainedTime = playTime - value;
+                    return Text(
+                      _timeToString(remainedTime),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            'Interstellar',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            'A Film by Chritopher Nolan - Original motion picture soundstack',
+            style: TextStyle(fontSize: 18),
           )
         ],
       ),
