@@ -15,6 +15,7 @@ class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with 
 
   late final AnimationController _progressController;
   late final AnimationController _marqueeController;
+  late final AnimationController _playPauseController;
 
   late final Animation<Offset> _marqueeTween =
       Tween(begin: const Offset(.1, 0), end: const Offset(-.6, 0)).animate(_marqueeController);
@@ -31,12 +32,14 @@ class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with 
       );
 
     _marqueeController = AnimationController(vsync: this, duration: const Duration(seconds: 20))..repeat(reverse: true);
+    _playPauseController = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
   }
 
   @override
   void dispose() {
     _progressController.dispose();
     _marqueeController.dispose();
+    _playPauseController.dispose();
     super.dispose();
   }
 
@@ -45,6 +48,14 @@ class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with 
     final twoDigitSec = time.inSeconds.remainder(60).toString().padLeft(2, '0');
 
     return '$twoDigitMin:$twoDigitSec';
+  }
+
+  void _onPlayPauseTap() {
+    if (_playPauseController.isCompleted) {
+      _playPauseController.reverse();
+    } else {
+      _playPauseController.forward();
+    }
   }
 
   @override
@@ -154,6 +165,26 @@ class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with 
                 ],
               )
             ],
+          ),
+          const SizedBox(height: 10),
+          GestureDetector(
+            onTap: _onPlayPauseTap,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedIcon(icon: AnimatedIcons.pause_play, progress: _playPauseController, size: 30),
+                // LottieBuilder.asset(
+                //   'assets/animations/play-lottie.json',
+                //   controller: _playPauseController,
+                //   onLoaded: (composition) {
+                //     // lottie 애니메이션 파일에 지정된 애니메이션 시간을 애니메이션 컨트롤러의 duration으로 지정한다.
+                //     _playPauseController.duration = composition.duration;
+                //   },
+                //   width: 50,
+                //   height: 50,
+                // ),
+              ],
+            ),
           ),
         ],
       ),
