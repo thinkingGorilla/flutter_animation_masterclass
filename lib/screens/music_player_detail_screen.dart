@@ -20,6 +20,8 @@ class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with 
   late final Animation<Offset> _marqueeTween =
       Tween(begin: const Offset(.1, 0), end: const Offset(-.6, 0)).animate(_marqueeController);
 
+  final ValueNotifier<double> _volume = ValueNotifier(.0);
+
   @override
   void initState() {
     super.initState();
@@ -58,6 +60,18 @@ class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with 
     }
   }
 
+  bool _dragging = false;
+
+  void _toggleDragging() {
+    super.setState(() {
+      _dragging = !_dragging;
+    });
+  }
+
+  void _onVolumeDragUpdate(DragUpdateDetails details) {
+    _volume.value = (_volume.value + details.delta.dx).clamp(0, 350);
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -92,13 +106,15 @@ class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with 
               ),
             ),
           ),
-          const SizedBox(height: 50),
+          const SizedBox(height: 30),
           AnimatedBuilder(
             animation: _progressController,
             builder: (context, child) {
-              return CustomPaint(
-                size: const Size(350, 5),
-                painter: ProgressBar(progressValue: _progressController.value),
+              return RepaintBoundary(
+                child: CustomPaint(
+                  size: const Size(350, 5),
+                  painter: ProgressBar(progressValue: _progressController.value),
+                ),
               );
             },
           ),
@@ -135,36 +151,26 @@ class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with 
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 5),
           const Text(
             'Interstellar',
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 5),
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              SizedBox(
-                width: 350,
-                child: SlideTransition(
-                  position: _marqueeTween,
-                  child: const Text(
-                    'A Film by Christopher Nolan - Original motion picture soundtrack',
-                    maxLines: 1,
-                    overflow: TextOverflow.visible,
-                    softWrap: false,
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ),
+          Container(
+            clipBehavior: Clip.hardEdge,
+            decoration: const BoxDecoration(),
+            width: 350,
+            child: SlideTransition(
+              position: _marqueeTween,
+              child: const Text(
+                'A Film by Christopher Nolan - Original motion picture soundtrack',
+                maxLines: 1,
+                overflow: TextOverflow.visible,
+                softWrap: false,
+                style: TextStyle(fontSize: 18),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildMarqueePartition(context, size),
-                  _buildMarqueePartition(context, size),
-                ],
-              )
-            ],
+            ),
           ),
           const SizedBox(height: 10),
           GestureDetector(
@@ -186,22 +192,32 @@ class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with 
               ],
             ),
           ),
+          const SizedBox(height: 15),
+          GestureDetector(
+            onHorizontalDragUpdate: _onVolumeDragUpdate,
+            onHorizontalDragStart: (_) => _toggleDragging(),
+            onHorizontalDragEnd: (_) => _toggleDragging(),
+            child: AnimatedScale(
+              scale: _dragging ? 1.1 : 1,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.bounceOut,
+              child: Container(
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
+                child: ValueListenableBuilder(
+                  valueListenable: _volume,
+                  builder: (context, value, child) {
+                    return CustomPaint(
+                      size: const Size(350, 50),
+                      painter: VolumePainter(value),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
         ],
       ),
-    );
-  }
-
-  Container _buildMarqueePartition(BuildContext context, Size size) {
-    return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
-      height: () {
-        final painter =
-            TextPainter(text: const TextSpan(style: TextStyle(fontSize: 18)), textDirection: TextDirection.ltr)
-              ..layout()
-              ..height;
-        return painter.height;
-      }(),
-      width: (size.width - 350) / 2,
     );
   }
 }
@@ -220,19 +236,14 @@ class ProgressBar extends CustomPainter {
     final trackPaint = Paint()
       ..color = Colors.grey.shade300
       ..style = PaintingStyle.fill;
-
     final trackRRect = RRect.fromLTRBR(0, 0, size.width, size.height, const Radius.circular(10));
-
     canvas.drawRRect(trackRRect, trackPaint);
 
     // progress
-
     final progressPaint = Paint()
       ..color = Colors.grey.shade500
       ..style = PaintingStyle.fill;
-
     final progressRRect = RRect.fromLTRBR(0, 0, progress, size.height, const Radius.circular(10));
-
     canvas.drawRRect(progressRRect, progressPaint);
 
     // thumb
@@ -242,5 +253,27 @@ class ProgressBar extends CustomPainter {
   @override
   bool shouldRepaint(ProgressBar oldDelegate) {
     return oldDelegate.progressValue != progressValue;
+  }
+}
+
+class VolumePainter extends CustomPainter {
+  final double volume;
+
+  VolumePainter(this.volume);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final bgPaint = Paint()..color = Colors.grey.shade300;
+    final bgRect = Rect.fromLTWH(0, 0, size.width, size.height);
+    canvas.drawRect(bgRect, bgPaint);
+
+    final volumePaint = Paint()..color = Colors.grey.shade500;
+    final volumePaintRect = Rect.fromLTWH(0, 0, volume, size.height);
+    canvas.drawRect(volumePaintRect, volumePaint);
+  }
+
+  @override
+  bool shouldRepaint(VolumePainter oldDelegate) {
+    return oldDelegate.volume != volume;
   }
 }
