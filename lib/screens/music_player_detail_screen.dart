@@ -12,6 +12,7 @@ class MusicPlayerDetailScreen extends StatefulWidget {
 class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with TickerProviderStateMixin {
   final Duration playTime = const Duration(minutes: 1);
   final ValueNotifier<Duration> _passedTime = ValueNotifier(Duration.zero);
+  final Curve _menuCurve = Curves.easeInOutCubic;
 
   late final AnimationController _progressController;
   late final AnimationController _marqueeController;
@@ -20,6 +21,44 @@ class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with 
 
   late final Animation<Offset> _marqueeTween =
       Tween(begin: const Offset(.1, 0), end: const Offset(-.6, 0)).animate(_marqueeController);
+
+  // 애니메이션 타임라인을 0부터 1까지라고 했을 때
+  // 이 애니메이션이 차지할 타임라인을 Interval 클래스를 통해 지정할 수 있다.
+  late final Animation<double> _screenScale = Tween(begin: 1.0, end: .7).animate(
+    CurvedAnimation(
+      parent: _menuController,
+      curve: Interval(.0, .3, curve: _menuCurve),
+    ),
+  );
+  late final Animation<Offset> _screenOffset = Tween(begin: Offset.zero, end: const Offset(.5, 0)).animate(
+    CurvedAnimation(
+      parent: _menuController,
+      curve: Interval(.2, .4, curve: _menuCurve),
+    ),
+  );
+  late final Animation<double> _closeButtonOpacity = Tween(begin: .0, end: 1.0).animate(
+    CurvedAnimation(
+      parent: _menuController,
+      curve: Interval(.3, .5, curve: _menuCurve),
+    ),
+  );
+
+  late final List<Animation<Offset>> _menuAnimations = [
+    for (int i = 0; i < _menus.length; i++)
+      Tween(begin: const Offset(-1, .0), end: Offset.zero).animate(
+        CurvedAnimation(
+          parent: _menuController,
+          curve: Interval(.4 + (.1 * i), .7 + (.1 * i), curve: _menuCurve),
+        ),
+      )
+  ];
+
+  late final Animation<Offset> _logoutSlide = Tween(begin: const Offset(-1, .0), end: Offset.zero).animate(
+    CurvedAnimation(
+      parent: _menuController,
+      curve: Interval(.8, 1.0, curve: _menuCurve),
+    ),
+  );
 
   final ValueNotifier<double> _volume = ValueNotifier(.0);
 
@@ -36,7 +75,11 @@ class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with 
 
     _marqueeController = AnimationController(vsync: this, duration: const Duration(seconds: 20))..repeat(reverse: true);
     _playPauseController = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
-    _menuController = AnimationController(vsync: this, duration: Duration(seconds: 5));
+    _menuController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+      reverseDuration: const Duration(seconds: 1),
+    );
   }
 
   @override
@@ -44,6 +87,7 @@ class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with 
     _progressController.dispose();
     _marqueeController.dispose();
     _playPauseController.dispose();
+    _menuController.dispose();
     super.dispose();
   }
 
@@ -99,200 +143,221 @@ class _MusicPlayerDetailScreenState extends State<MusicPlayerDetailScreen> with 
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
     return Stack(
       children: [
-        Scaffold(
-          appBar: AppBar(
-            title: const Text('Interstellar'),
-            actions: [
-              IconButton(onPressed: _openMenu, icon: const Icon(Icons.menu)),
-            ],
-          ),
-          body: Column(
-            children: [
-              const SizedBox(height: 30),
-              Align(
-                alignment: Alignment.center,
-                child: Hero(
-                  tag: '${widget.index}',
-                  child: Container(
-                    height: 350,
-                    width: 350,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.4),
-                          blurRadius: 10,
-                          spreadRadius: 2,
-                          offset: const Offset(0, 8),
-                        )
-                      ],
-                      image: DecorationImage(
-                        image: AssetImage('assets/covers/${widget.index}.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 30),
-              AnimatedBuilder(
-                animation: _progressController,
-                builder: (context, child) {
-                  return RepaintBoundary(
-                    child: CustomPaint(
-                      size: const Size(350, 5),
-                      painter: ProgressBar(progressValue: _progressController.value),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 10),
-              // AnimatedBuilder vs ValueListenableBuilder
-              // 연속성을 가지는 값을 가지는 경우 AnimatedBuilder를 그렇지 않은 경우 ValueListenableBuilder를 사용하자.
-              // 하지만 결국 두 Builder 모두 내부적으로는 Listenable을 사용하며
-              // 옵저버 패턴을 통해 Oservable, 즉 Listenable에 값이 바뀔 때 setState()를 호출하여
-              // 빌더에서 반환하는 위젯의 상태를 변경, 다시 화면을 그리게 된다.
-              SizedBox(
-                width: 350,
-                child: Row(
-                  children: [
-                    ValueListenableBuilder(
-                      valueListenable: _passedTime,
-                      builder: (context, value, child) {
-                        return Text(
-                          _timeToString(value),
-                          style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600),
-                        );
-                      },
-                    ),
-                    const Spacer(),
-                    ValueListenableBuilder(
-                      valueListenable: _passedTime,
-                      builder: (context, value, child) {
-                        final remainedTime = playTime - value;
-                        return Text(
-                          _timeToString(remainedTime),
-                          style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 5),
-              const Text(
-                'Interstellar',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 5),
-              Container(
-                clipBehavior: Clip.hardEdge,
-                decoration: const BoxDecoration(),
-                width: 350,
-                child: SlideTransition(
-                  position: _marqueeTween,
-                  child: const Text(
-                    'A Film by Christopher Nolan - Original motion picture soundtrack',
-                    maxLines: 1,
-                    overflow: TextOverflow.visible,
-                    softWrap: false,
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              GestureDetector(
-                onTap: _onPlayPauseTap,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    AnimatedIcon(icon: AnimatedIcons.pause_play, progress: _playPauseController, size: 30),
-                    // LottieBuilder.asset(
-                    //   'assets/animations/play-lottie.json',
-                    //   controller: _playPauseController,
-                    //   onLoaded: (composition) {
-                    //     // lottie 애니메이션 파일에 지정된 애니메이션 시간을 애니메이션 컨트롤러의 duration으로 지정한다.
-                    //     _playPauseController.duration = composition.duration;
-                    //   },
-                    //   width: 50,
-                    //   height: 50,
-                    // ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 15),
-              GestureDetector(
-                onHorizontalDragUpdate: _onVolumeDragUpdate,
-                onHorizontalDragStart: (_) => _toggleDragging(),
-                onHorizontalDragEnd: (_) => _toggleDragging(),
-                child: AnimatedScale(
-                  scale: _dragging ? 1.1 : 1,
-                  duration: const Duration(milliseconds: 500),
-                  curve: Curves.bounceOut,
-                  child: Container(
-                    clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
-                    child: ValueListenableBuilder(
-                      valueListenable: _volume,
-                      builder: (context, value, child) {
-                        return CustomPaint(
-                          size: const Size(350, 50),
-                          painter: VolumePainter(value),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-            ],
+        _buildSideMenu(),
+        SlideTransition(
+          position: _screenOffset,
+          child: ScaleTransition(
+            scale: _screenScale,
+            child: _buildMusicPlayer(),
           ),
         ),
-        Scaffold(
-          backgroundColor: Colors.black,
-          appBar: AppBar(
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
-            leading: IconButton(onPressed: _closeMenu, icon: const Icon(Icons.close)),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Column(
-              children: [
-                const SizedBox(height: 30),
-                for (final menu in _menus) ...[
-                  Row(
-                    children: [
-                      Icon(menu['icon'], color: Colors.grey.shade200),
-                      const SizedBox(width: 10),
-                      Text(
-                        menu['text'],
-                        style: TextStyle(color: Colors.grey.shade200, fontSize: 18),
-                      ),
-                    ],
+      ],
+    );
+  }
+
+  Widget _buildMusicPlayer() {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Interstellar'),
+        actions: [
+          IconButton(onPressed: _openMenu, icon: const Icon(Icons.menu)),
+        ],
+      ),
+      body: Column(
+        children: [
+          const SizedBox(height: 30),
+          Align(
+            alignment: Alignment.center,
+            child: Hero(
+              tag: '${widget.index}',
+              child: Container(
+                height: 350,
+                width: 350,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.4),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 8),
+                    )
+                  ],
+                  image: DecorationImage(
+                    image: AssetImage('assets/covers/${widget.index}.jpg'),
+                    fit: BoxFit.cover,
                   ),
-                  const SizedBox(height: 30),
-                ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 30),
+          AnimatedBuilder(
+            animation: _progressController,
+            builder: (context, child) {
+              return RepaintBoundary(
+                child: CustomPaint(
+                  size: const Size(350, 5),
+                  painter: ProgressBar(progressValue: _progressController.value),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 10),
+          // AnimatedBuilder vs ValueListenableBuilder
+          // 연속성을 가지는 값을 가지는 경우 AnimatedBuilder를 그렇지 않은 경우 ValueListenableBuilder를 사용하자.
+          // 하지만 결국 두 Builder 모두 내부적으로는 Listenable을 사용하며
+          // 옵저버 패턴을 통해 Oservable, 즉 Listenable에 값이 바뀔 때 setState()를 호출하여
+          // 빌더에서 반환하는 위젯의 상태를 변경, 다시 화면을 그리게 된다.
+          SizedBox(
+            width: 350,
+            child: Row(
+              children: [
+                ValueListenableBuilder(
+                  valueListenable: _passedTime,
+                  builder: (context, value, child) {
+                    return Text(
+                      _timeToString(value),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600),
+                    );
+                  },
+                ),
                 const Spacer(),
-                Row(
+                ValueListenableBuilder(
+                  valueListenable: _passedTime,
+                  builder: (context, value, child) {
+                    final remainedTime = playTime - value;
+                    return Text(
+                      _timeToString(remainedTime),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 5),
+          const Text(
+            'Interstellar',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 5),
+          Container(
+            clipBehavior: Clip.hardEdge,
+            decoration: const BoxDecoration(),
+            width: 350,
+            child: SlideTransition(
+              position: _marqueeTween,
+              child: const Text(
+                'A Film by Christopher Nolan - Original motion picture soundtrack',
+                maxLines: 1,
+                overflow: TextOverflow.visible,
+                softWrap: false,
+                style: TextStyle(fontSize: 18),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          GestureDetector(
+            onTap: _onPlayPauseTap,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedIcon(icon: AnimatedIcons.pause_play, progress: _playPauseController, size: 30),
+                // LottieBuilder.asset(
+                //   'assets/animations/play-lottie.json',
+                //   controller: _playPauseController,
+                //   onLoaded: (composition) {
+                //     // lottie 애니메이션 파일에 지정된 애니메이션 시간을 애니메이션 컨트롤러의 duration으로 지정한다.
+                //     _playPauseController.duration = composition.duration;
+                //   },
+                //   width: 50,
+                //   height: 50,
+                // ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 15),
+          GestureDetector(
+            onHorizontalDragUpdate: _onVolumeDragUpdate,
+            onHorizontalDragStart: (_) => _toggleDragging(),
+            onHorizontalDragEnd: (_) => _toggleDragging(),
+            child: AnimatedScale(
+              scale: _dragging ? 1.1 : 1,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.bounceOut,
+              child: Container(
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
+                child: ValueListenableBuilder(
+                  valueListenable: _volume,
+                  builder: (context, value, child) {
+                    return CustomPaint(
+                      size: const Size(350, 50),
+                      painter: VolumePainter(value),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSideMenu() {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        leading: FadeTransition(
+          opacity: _closeButtonOpacity,
+          child: IconButton(onPressed: _closeMenu, icon: const Icon(Icons.close)),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: Column(
+          children: [
+            const SizedBox(height: 30),
+            for (int i = 0; i < _menus.length; i++) ...[
+              SlideTransition(
+                position: _menuAnimations[i],
+                child: Row(
                   children: [
-                    Icon(Icons.logout, color: Colors.grey.shade200),
+                    Icon(_menus[i]['icon'], color: Colors.grey.shade200),
                     const SizedBox(width: 10),
                     Text(
-                      'Logout',
+                      _menus[i]['text'],
                       style: TextStyle(color: Colors.grey.shade200, fontSize: 18),
                     ),
                   ],
                 ),
-                const SizedBox(height: 100),
-              ],
+              ),
+              const SizedBox(height: 30),
+            ],
+            const Spacer(),
+            SlideTransition(
+              position: _logoutSlide,
+              child: const Row(
+                children: [
+                  Icon(Icons.logout, color: Colors.red),
+                  SizedBox(width: 10),
+                  Text(
+                    'Logout',
+                    style: TextStyle(color: Colors.red, fontSize: 18),
+                  ),
+                ],
+              ),
             ),
-          ),
+            const SizedBox(height: 100),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
