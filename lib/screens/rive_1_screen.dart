@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
 
-class RiveScreen extends StatefulWidget {
-  const RiveScreen({super.key});
+class Rive1Screen extends StatefulWidget {
+  const Rive1Screen({super.key});
 
   @override
-  State<RiveScreen> createState() => _RiveScreenState();
+  State<Rive1Screen> createState() => _Rive1ScreenState();
 }
 
-class _RiveScreenState extends State<RiveScreen> {
+class _Rive1ScreenState extends State<Rive1Screen> {
   late final StateMachineController _stateMachineController;
 
   void _onInit(Artboard artboard) {
@@ -31,7 +31,7 @@ class _RiveScreenState extends State<RiveScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Rive'),
+        title: const Text('Rive1'),
       ),
       body: Center(
         child: Column(
