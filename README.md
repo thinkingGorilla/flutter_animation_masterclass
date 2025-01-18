@@ -4,7 +4,7 @@ The Biceps and Triceps Flutter Anim ation Master Class, Ta-da!
 
 ## Which Flutter Animation Widget right for you?
 
-<img src="https://docs.flutter.dev/assets/images/docs/ui/animations/animation-decision-tree.png" alt="Alt Text" style="width:50%; height:auto;">
+<img src="https://docs.flutter.dev/assets/images/docs/ui/animations/animation-decision-tree.png" alt="Alt Text" style="width:80%; height:auto;">
 
 # Learning & Projects
 
