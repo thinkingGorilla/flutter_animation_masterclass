@@ -6,6 +6,7 @@ import 'package:flutter_animations_masterclass/screens/rive_1_screen.dart';
 import 'package:flutter_animations_masterclass/screens/rive_2_screen.dart';
 import 'package:flutter_animations_masterclass/screens/rive_3_screen.dart';
 import 'package:flutter_animations_masterclass/screens/rive_4_screen.dart';
+import 'package:flutter_animations_masterclass/screens/shared_axis_screen.dart';
 import 'package:flutter_animations_masterclass/screens/swiping_cards_screen.dart';
 
 import 'container_transform_screen.dart';
@@ -62,7 +63,11 @@ class MenuScreen extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () => _goToPage(context, const ContainerTransformScreen()),
-              child: const Text('Material Motion'),
+              child: const Text('Material Motion 1'),
+            ),
+            ElevatedButton(
+              onPressed: () => _goToPage(context, const SharedAxisScreen()),
+              child: const Text('Material Motion 2'),
             ),
           ],
         ),
