@@ -5,6 +5,7 @@ import 'package:flutter_animations_masterclass/screens/music_player_screen.dart'
 import 'package:flutter_animations_masterclass/screens/rive_1_screen.dart';
 import 'package:flutter_animations_masterclass/screens/rive_2_screen.dart';
 import 'package:flutter_animations_masterclass/screens/rive_3_screen.dart';
+import 'package:flutter_animations_masterclass/screens/rive_4_screen.dart';
 import 'package:flutter_animations_masterclass/screens/swiping_cards_screen.dart';
 
 import 'implicit_animations_screen.dart';
@@ -53,6 +54,10 @@ class MenuScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () => _goToPage(context, const Rive3Screen()),
               child: const Text('Rive_3'),
+            ),
+            ElevatedButton(
+              onPressed: () => _goToPage(context, const Rive4Screen()),
+              child: const Text('Rive_4'),
             ),
           ],
         ),
