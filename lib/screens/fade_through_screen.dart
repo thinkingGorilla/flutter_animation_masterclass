@@ -24,6 +24,7 @@ class _FadeThroughScreenState extends State<FadeThroughScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('Fade Through')),
       body: PageTransitionSwitcher(
+        duration: Duration(seconds: 1),
         transitionBuilder: (child, primaryAnimation, secondaryAnimation) => FadeThroughTransition(
           animation: primaryAnimation,
           secondaryAnimation: secondaryAnimation,

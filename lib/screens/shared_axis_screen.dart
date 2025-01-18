@@ -24,7 +24,7 @@ class _SharedAxisScreenState extends State<SharedAxisScreen> {
       body: Column(
         children: [
           PageTransitionSwitcher(
-            duration: Duration(seconds: 3),
+            duration: Duration(seconds: 1),
             transitionBuilder: (child, primaryAnimation, secondaryAnimation) => SharedAxisTransition(
               animation: primaryAnimation,
               secondaryAnimation: secondaryAnimation,

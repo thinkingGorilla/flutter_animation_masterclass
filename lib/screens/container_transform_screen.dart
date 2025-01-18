@@ -36,7 +36,7 @@ class _ContainerTransformScreenState extends State<ContainerTransformScreen> {
               ),
               itemBuilder: (context, index) => OpenContainer(
                 openBuilder: (context, action) => DetailScreen(image: (index % 5) + 1),
-                transitionDuration: Duration(seconds: 3),
+                transitionDuration: Duration(seconds: 1),
                 closedBuilder: (context, action) => Column(
                   children: [
                     Image.asset('assets/covers/${(index % 5) + 1}.jpg'),

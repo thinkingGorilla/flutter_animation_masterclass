@@ -1,0 +1,1 @@
+![swiping_cards.gif](..%2Fresults%2Fswiping_cards.gif)

@@ -1,0 +1,1 @@
+![material_motion.gif](..%2Fresults%2Fmaterial_motion.gif)
