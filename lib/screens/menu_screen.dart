@@ -8,6 +8,7 @@ import 'package:flutter_animations_masterclass/screens/rive_3_screen.dart';
 import 'package:flutter_animations_masterclass/screens/rive_4_screen.dart';
 import 'package:flutter_animations_masterclass/screens/swiping_cards_screen.dart';
 
+import 'container_transform_screen.dart';
 import 'implicit_animations_screen.dart';
 
 class MenuScreen extends StatelessWidget {
@@ -58,6 +59,10 @@ class MenuScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () => _goToPage(context, const Rive4Screen()),
               child: const Text('Rive_4'),
+            ),
+            ElevatedButton(
+              onPressed: () => _goToPage(context, const ContainerTransformScreen()),
+              child: const Text('Material Motion'),
             ),
           ],
         ),
