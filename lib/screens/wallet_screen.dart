@@ -18,15 +18,19 @@ class _WalletScreenState extends State<WalletScreen> {
       body: Padding(
         padding: EdgeInsets.all(20),
         child: Column(
-          children: AnimateList(
-            interval: 500.ms,
-            effects: [SlideEffect(begin: Offset(-1, 0), end: Offset.zero), FadeEffect(begin: 0, end: 1)],
-            children: [
-              CreditCard(bgColor: Colors.purple),
-              CreditCard(bgColor: Colors.black),
-              CreditCard(bgColor: Colors.blue),
-            ],
-          ),
+          children: [
+            CreditCard(bgColor: Colors.purple),
+            CreditCard(bgColor: Colors.black),
+            CreditCard(bgColor: Colors.blue),
+          ]
+              .animate(interval: 500.ms)
+              .fadeIn(
+                begin: 0,
+              )
+              .slideX(
+                begin: -1,
+                end: 0,
+              ),
         ),
       ),
     );
