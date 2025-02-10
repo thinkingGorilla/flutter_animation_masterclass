@@ -38,6 +38,7 @@ dependencies:
   lottie: ^3.2.0
   rive: ^0.13.20
   animations: ^2.0.7
+  flutter_animate: ^4.5.2
 
 dev_dependencies:
   flutter_test:

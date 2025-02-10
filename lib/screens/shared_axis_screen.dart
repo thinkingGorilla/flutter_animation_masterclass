@@ -28,7 +28,7 @@ class _SharedAxisScreenState extends State<SharedAxisScreen> {
             transitionBuilder: (child, primaryAnimation, secondaryAnimation) => SharedAxisTransition(
               animation: primaryAnimation,
               secondaryAnimation: secondaryAnimation,
-              transitionType: SharedAxisTransitionType.scaled,
+              transitionType: SharedAxisTransitionType.horizontal,
               child: child,
             ),
             child: Container(
