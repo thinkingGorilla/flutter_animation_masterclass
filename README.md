@@ -35,3 +35,7 @@ see → [rive animations learning](readmes%2F5_rive_animations_learning.md)
 ## Material motion learning
 
 see → [material motion learning](readmes%2F6_material_motion_learning.md)
+
+## Flutter animate lib learning
+
+see → [7_flutter_animate_lib_learning.md](readmes%2F7_flutter_animate_lib_learning.md)

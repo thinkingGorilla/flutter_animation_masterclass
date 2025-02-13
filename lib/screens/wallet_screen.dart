@@ -8,6 +8,8 @@ class WalletScreen extends StatefulWidget {
   State<WalletScreen> createState() => _WalletScreenState();
 }
 
+List<Color> colors = [Colors.black, Colors.purple, Colors.blue];
+
 class _WalletScreenState extends State<WalletScreen> {
   bool _isExpanded = false;
 
@@ -26,28 +28,46 @@ class _WalletScreenState extends State<WalletScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Wallet'),
-      ),
+      appBar: AppBar(title: const Text('Wallet')),
       body: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: GestureDetector(
           onVerticalDragEnd: (_) => _onShrink(),
           onTap: _onExpand,
-          child: Column(
-            children: [
-              CreditCard(bgColor: Colors.purple)
-                  .animate(target: _isExpanded ? 1 : 0, delay: 1.5.seconds)
-                  .flipV(end: 0.1),
-              CreditCard(bgColor: Colors.black)
-                  .animate(target: _isExpanded ? 1 : 0, delay: 1.5.seconds)
-                  .flipV(end: 0.1)
-                  .slideY(end: -.8),
-              CreditCard(bgColor: Colors.blue)
-                  .animate(target: _isExpanded ? 1 : 0, delay: 1.5.seconds)
-                  .flipV(end: 0.1)
-                  .slideY(end: -.8 * 2),
-            ].animate(interval: 500.ms).fadeIn(begin: 0).slideX(begin: -1, end: 0),
+          child: Center(
+            child: Column(
+              children: [
+                for (var index in [0, 1])
+                  Hero(
+                    tag: "$index",
+                    child: CreditCard(
+                      index: index,
+                      isExpanded: _isExpanded,
+                    )
+                        .animate(
+                          target: _isExpanded ? 0 : 1,
+                          delay: 1.5.seconds,
+                        )
+                        .flipV(
+                          end: 0.1,
+                        )
+                        .slideY(
+                          end: -0.8 * index,
+                        ),
+                  ),
+              ]
+                  .animate(
+                    interval: 500.ms,
+                    delay: 300.ms,
+                  )
+                  .fadeIn(
+                    begin: 0,
+                  )
+                  .slideX(
+                    begin: -1,
+                    end: 0,
+                  ),
+            ),
           ),
         ),
       ),
@@ -55,78 +75,148 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 }
 
-class CreditCard extends StatelessWidget {
-  final Color bgColor;
+class CreditCard extends StatefulWidget {
+  final int index;
+  final bool isExpanded;
 
-  const CreditCard({super.key, required this.bgColor});
+  const CreditCard({
+    super.key,
+    required this.index,
+    required this.isExpanded,
+  });
+
+  @override
+  State<CreditCard> createState() => _CreditCardState();
+}
+
+class _CreditCardState extends State<CreditCard> {
+  void _onTap() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CardDetailScreen(index: widget.index),
+        fullscreenDialog: true,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      margin: EdgeInsets.only(bottom: 20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: bgColor,
-      ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: 30,
-          vertical: 40,
+    return Material(
+      type: MaterialType.transparency,
+      child: AbsorbPointer(
+        absorbing: !widget.isExpanded,
+        child: GestureDetector(
+          onTap: _onTap,
+          child: Container(
+            width: 350,
+            height: 200,
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: colors[widget.index],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
+              child: Column(
+                children: [
+                  const SizedBox(height: 70),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            'Nomad Coders',
+                            style: TextStyle(color: Colors.white, fontSize: 20),
+                          ),
+                          Text(
+                            '**** **** **75',
+                            style: TextStyle(color: Colors.white),
+                          )
+                        ],
+                      ),
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Positioned(
+                            child: Container(
+                              width: 50,
+                              height: 50,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            right: 20,
+                            child: Container(
+                              width: 50,
+                              height: 50,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.amber,
+                              ),
+                            ),
+                          )
+                        ],
+                      )
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class CardDetailScreen extends StatelessWidget {
+  final int index;
+
+  const CardDetailScreen({
+    super.key,
+    required this.index,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Transactions')),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            SizedBox(height: 100),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Nomad Coders',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                      ),
-                    ),
-                    Text(
-                      '**** **** **75',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                      ),
-                    ),
-                  ],
-                ),
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Positioned(
-                      child: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.red,
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      right: 20,
-                      child: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.amber,
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              ],
+            Hero(
+              tag: "$index",
+              child: CreditCard(index: index, isExpanded: true),
             ),
+            ...[
+              for (var i in List.generate(4, (_) {}))
+                Container(
+                  margin: EdgeInsets.only(bottom: 10),
+                  child: ListTile(
+                    tileColor: Colors.grey.shade100,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    leading: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.red),
+                      child: Icon(Icons.shopping_bag, color: Colors.white),
+                    ),
+                    title: Text('Musinsa', style: TextStyle(fontSize: 18)),
+                    subtitle: Text('Gangnam Branch', style: TextStyle(color: Colors.grey.shade800)),
+                    trailing: Text('￦53,000', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+            ]
+                .animate(interval: 500.ms, delay: 300.ms)
+                .flipV(begin: -.5, end: 0, curve: Curves.easeInOut, duration: 500.ms)
+                .fadeIn(begin: 0)
           ],
         ),
       ),
